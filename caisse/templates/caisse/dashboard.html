@@ -1,0 +1,254 @@
+{% extends "caisse/base.html" %}
+{% load static humanize %}
+
+{% block title %}Dashboard caisse{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Titre + bouton -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard caisse
+        </h2>
+        <a href="{% url 'mouvement_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nouveau mouvement
+        </a>
+    </div>
+
+    <!-- KPIs principaux -->
+    <div class="row g-3 mb-3">
+
+        <div class="col-md-3">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Solde initial</div>
+                    <div class="h5 text-success mb-0">
+                        {{ solde_initial|floatformat:0|intcomma }} FCFA
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-primary h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Total entrées</div>
+                    <div class="h5 text-primary mb-0">
+                        {{ total_entree|floatformat:0|intcomma }} FCFA
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-danger h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Total sorties</div>
+                    <div class="h5 text-danger mb-0">
+                        {{ total_sortie|floatformat:0|intcomma }} FCFA
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-dark h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Solde final</div>
+                    <div class="h5 {% if solde_final >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                        {{ solde_final|floatformat:0|intcomma }} FCFA
+                    </div>
+                    <div class="small text-muted">
+                        {{ nb_mouvements }} mouvement{{ nb_mouvements|pluralize:"s" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- KPI du mois courant -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Entrées ({{ mois_courant|capfirst }})</div>
+                    <div class="h5 text-primary mb-0">
+                        {{ mois_entree|floatformat:0|intcomma }} FCFA
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Sorties ({{ mois_courant|capfirst }})</div>
+                    <div class="h5 text-danger mb-0">
+                        {{ mois_sortie|floatformat:0|intcomma }} FCFA
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light h-100">
+                <div class="card-body">
+                    <div class="small text-muted">Résultat du mois</div>
+                    <div class="h5 {% if mois_solde >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                        {{ mois_solde|floatformat:0|intcomma }} FCFA
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header">
+                    Évolution mensuelle entrées / sorties
+                </div>
+                <div class="card-body">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    Répartition par caisse
+                </div>
+                <div class="card-body">
+                    <canvas id="caisseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Derniers mouvements -->
+    <div class="card">
+        <div class="card-header">
+            Derniers mouvements
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Libellé</th>
+                    <th>Caisse</th>
+                    <th>Type</th>
+                    <th class="text-end">Entrée</th>
+                    <th class="text-end">Sortie</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for m in derniers %}
+                    <tr>
+                        <td>{{ m.date_mouvement|date:"d/m/Y" }}</td>
+                        <td>{{ m.libelle }}</td>
+                        <td>{{ m.caisse.libelle }}</td>
+                        <td>{{ m.type_mouvement.libelle }}</td>
+                        <td class="text-end">
+                            {% if m.entree %}{{ m.entree|floatformat:0|intcomma }}{% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if m.sortie %}{{ m.sortie|floatformat:0|intcomma }}{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center">Aucun mouvement.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Données pour Chart.js -->
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_entrees|json_script:"chart-entrees" }}
+{{ chart_sorties|json_script:"chart-sorties" }}
+{{ caisse_labels|json_script:"caisse-labels" }}
+{{ caisse_values|json_script:"caisse-values" }}
+
+<!-- Chart.js depuis CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    (function() {
+        const labels = JSON.parse(document.getElementById("chart-labels").textContent);
+        const dataEntrees = JSON.parse(document.getElementById("chart-entrees").textContent);
+        const dataSorties = JSON.parse(document.getElementById("chart-sorties").textContent);
+
+        const ctxLine = document.getElementById("lineChart").getContext("2d");
+        new Chart(ctxLine, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Entrées",
+                        data: dataEntrees,
+                        borderWidth: 2,
+                        tension: 0.3
+                    },
+                    {
+                        label: "Sorties",
+                        data: dataSorties,
+                        borderWidth: 2,
+                        borderDash: [4, 4],
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: "index", intersect: false },
+                stacked: false,
+                plugins: {
+                    legend: { position: "bottom" }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString("fr-FR");
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Donut par caisse
+        const caisseLabels = JSON.parse(document.getElementById("caisse-labels").textContent);
+        const caisseValues = JSON.parse(document.getElementById("caisse-values").textContent);
+
+        const ctxCaisse = document.getElementById("caisseChart").getContext("2d");
+        new Chart(ctxCaisse, {
+            type: "doughnut",
+            data: {
+                labels: caisseLabels,
+                datasets: [{
+                    data: caisseValues
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: "bottom" }
+                }
+            }
+        });
+    })();
+</script>
+
+{% endblock %}

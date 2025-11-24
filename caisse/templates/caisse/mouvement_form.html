@@ -1,0 +1,154 @@
+{% extends "caisse/base.html" %}
+
+{% block title %}Nouveau mouvement{% endblock %}
+{% block page_title %}Nouveau mouvement de caisse{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Saisie d'un mouvement de caisse</h5>
+                <a href="{% url 'suivi_caisse' %}" class="btn btn-outline-secondary btn-sm">
+                    ← Retour au suivi
+                </a>
+            </div>
+
+            <div class="card-body">
+
+                {# Messages Django (success, error…) #}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {# Erreurs globales du formulaire (ValidationError de clean()) #}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for err in form.non_field_errors %}
+                            <div>{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.date_mouvement.label }}</label>
+                            {{ form.date_mouvement }}
+                            {% for error in form.date_mouvement.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.num_piece.label }}</label>
+                            {{ form.num_piece }}
+                            {% for error in form.num_piece.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.caisse.label }}</label>
+                            {{ form.caisse }}
+                            {% for error in form.caisse.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ form.libelle.label }}</label>
+                            {{ form.libelle }}
+                            {% for error in form.libelle.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.type_mouvement.label }}</label>
+                            {{ form.type_mouvement }}
+                            {% for error in form.type_mouvement.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.mode_paiement.label }}</label>
+                            {{ form.mode_paiement }}
+                            {% for error in form.mode_paiement.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-success">Entrée (crédit)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">FCFA</span>
+                                {{ form.entree }}
+                            </div>
+                            <div class="form-text">
+                                Si vous remplissez ce champ, laissez le champ “Sortie” vide.
+                            </div>
+                            {% for error in form.entree.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-danger">Sortie (débit)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">FCFA</span>
+                                {{ form.sortie }}
+                            </div>
+                            <div class="form-text">
+                                Si vous remplissez ce champ, laissez le champ “Entrée” vide.
+                            </div>
+                            {% for error in form.sortie.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ form.observations.label }}</label>
+                            {{ form.observations }}
+                            {% for error in form.observations.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ form.piece_jointe.label }}</label>
+                            {{ form.piece_jointe }}
+                            {% for error in form.piece_jointe.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">
+                                Vous pouvez joindre une pièce scannée (ordre de mission, facture, note, etc.).
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a href="{% url 'suivi_caisse' %}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Enregistrer le mouvement
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

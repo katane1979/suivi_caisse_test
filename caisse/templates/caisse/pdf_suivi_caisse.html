@@ -1,0 +1,102 @@
+
+{% block page_title %}Dashboard{% endblock %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Suivi de caisse - PDF</title>
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; }
+        h1, h2, h3 { margin: 0; padding: 0; }
+        .header { text-align: center; margin-bottom: 10px; }
+        .header h2 { text-transform: uppercase; }
+        .small { font-size: 9px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #444; padding: 3px; }
+        th { background-color: #eee; }
+        .right { text-align: right; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>Relevé de caisse</h2>
+    {% if parametre %}
+        <div class="small">
+            Année d'analyse : {{ parametre.annee_analyse }}<br/>
+            Solde initial : {{ solde_initial|floatformat:0 }} FCFA
+        </div>
+    {% endif %}
+    {% if date_debut or date_fin %}
+        <div class="small">
+            Période :
+            {% if date_debut %}du {{ date_debut }}{% endif %}
+            {% if date_fin %} au {{ date_fin }}{% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>N° pièce</th>
+        <th>Libellé</th>
+        <th>Type</th>
+        <th>Caisse</th>
+        <th>Mode</th>
+        <th class="right">Entrée</th>
+        <th class="right">Sortie</th>
+        <th class="right">Solde cumulé</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for ligne in lignes %}
+        <tr>
+            <td>{{ ligne.mouvement.date_mouvement }}</td>
+            <td>{{ ligne.mouvement.num_piece }}</td>
+            <td>{{ ligne.mouvement.libelle }}</td>
+            <td>{{ ligne.mouvement.type_mouvement.libelle }}</td>
+            <td>{{ ligne.mouvement.caisse.libelle }}</td>
+            <td>{{ ligne.mouvement.mode_paiement.libelle }}</td>
+            <td class="right">
+                {% if ligne.mouvement.entree %}
+                    {{ ligne.mouvement.entree|floatformat:0 }}
+                {% endif %}
+            </td>
+            <td class="right">
+                {% if ligne.mouvement.sortie %}
+                    {{ ligne.mouvement.sortie|floatformat:0 }}
+                {% endif %}
+            </td>
+            <td class="right">
+                {{ ligne.solde_cumule|floatformat:0 }}
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="9">Aucun mouvement.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<br/>
+<table>
+    <tr>
+        <th>Total entrées</th>
+        <td class="right">{{ total_entree|floatformat:0 }} FCFA</td>
+    </tr>
+    <tr>
+        <th>Total sorties</th>
+        <td class="right">{{ total_sortie|floatformat:0 }} FCFA</td>
+    </tr>
+    <tr>
+        <th>Solde final</th>
+        <td class="right">{{ solde_final|floatformat:0 }} FCFA</td>
+    </tr>
+</table>
+
+</body>
+</html>
