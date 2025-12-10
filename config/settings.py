@@ -3,6 +3,11 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
+
+DEBUG = os.getenv("DEBUG", "False") == "True"
+SECRET_KEY = os.getenv("SECRET_KEY", "changeme-en-prod")
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Charger le .env
@@ -80,6 +85,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Base de données SQLite (par défaut)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
+}
+
+
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
@@ -128,7 +140,7 @@ USE_TZ = True
 # Fichiers statiques (CSS, JS, etc.)
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
