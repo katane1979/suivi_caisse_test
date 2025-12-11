@@ -1,38 +1,29 @@
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 import dj_database_url
-
-
-DEBUG = os.getenv("DEBUG", "False") == "True"
-SECRET_KEY = os.getenv("SECRET_KEY", "changeme-en-prod")
-
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Charger le .env
-load_dotenv(BASE_DIR / ".env")
-
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-key-insecure")
-DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
-
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if not DEBUG else []
-
-from pathlib import Path
 
 # Chemin de base du projet
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ⚠️ Clé secrète de développement (OK pour local)
-SECRET_KEY = "django-insecure-dev-suivi-caisse-test"
+# Clé secrète : en prod, prendre DJANGO_SECRET_KEY, sinon une clé de dev
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-suivi-caisse-test")
 
-# On laisse le debug à True pour voir les erreurs en local
-DEBUG = True
+# DEBUG : en prod, mets DJANGO_DEBUG = False dans Render
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+# Hôtes autorisés
+if DEBUG:
+    ALLOWED_HOSTS: list[str] = []
+else:
+    # Exemple dans Render : DJANGO_ALLOWED_HOSTS=suivi-caisse-test-1.onrender.com
+    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
 
 
-# Applications installées
+
+# -------------------------------------------------
+#  APPLICATIONS
+# -------------------------------------------------
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -42,14 +33,17 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
 
-    "caisse",  # notre app
+    "caisse",  # Votre application
 ]
 
 
-# Middleware
+# -------------------------------------------------
+#  MIDDLEWARE
+# -------------------------------------------------
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Important pour Render
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -61,6 +55,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+
+# -------------------------------------------------
+#  TEMPLATES
+# -------------------------------------------------
 
 TEMPLATES = [
     {
@@ -82,15 +80,11 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-# Base de données SQLite (par défaut)
+# -------------------------------------------------
+#  DATABASE CONFIG (SQLite local, PostgreSQL Render)
+# -------------------------------------------------
+
 DATABASE_URL = os.getenv("DATABASE_URL")
-
-import dj_database_url
-
-DATABASES = {
-    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
-}
-
 
 if DATABASE_URL:
     DATABASES = {
@@ -99,50 +93,46 @@ if DATABASE_URL:
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", "suivi_caisse"),
-            "USER": os.getenv("DB_USER", "suivi_caisse_user"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-            "PORT": os.getenv("DB_PORT", "5432"),
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
 
+# -------------------------------------------------
+#  PASSWORD VALIDATION
+# -------------------------------------------------
 
-
-# Validation des mots de passe (tu peux laisser comme ça)
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
+# -------------------------------------------------
+#  INTERNATIONALIZATION
+# -------------------------------------------------
+
 LANGUAGE_CODE = "fr-fr"
-
 TIME_ZONE = "Africa/Brazzaville"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
-# Fichiers statiques (CSS, JS, etc.)
+# -------------------------------------------------
+#  STATIC & MEDIA FILES
+# -------------------------------------------------
+
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
